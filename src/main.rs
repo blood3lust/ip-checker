@@ -1,4 +1,16 @@
 use std::{io, net::IpAddr, process};
+#[derive(Debug, PartialEq)]
+pub enum InputType {
+    Ip(IpAddr),
+    Invalid,
+}
+
+pub fn classify_input(input: &str) -> InputType {
+    match input.parse::<IpAddr>() {
+        Ok(ip) => InputType::Ip(ip),
+        Err(_) => InputType::Invalid,
+    }
+}
 
 fn get_user_input() {
     let mut user_input = String::new();
@@ -19,12 +31,30 @@ fn main() {
 }
 
 fn check_ip_address(user_input: &str) {
-    match user_input.parse::<IpAddr>() {
-        Ok(ip) => {
-            println!("✅ Это IP-адрес: {}", ip);
-        }
-        Err(_) => {
-            eprintln!("❌ Это не IP-адрес");
-        }
+    match classify_input(user_input) {
+        InputType::Ip(ip) => println!("✅ Это IP-адрес: {}", ip),
+        InputType::Invalid => eprintln!("❌ Это не IP-адрес"),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_valid_ipv4() {
+        assert_eq!(classify_input("192.168.1.1"), InputType::Ip("192.168.1.1".parse().unwrap()));
+    }
+
+    #[test]
+    fn test_valid_ipv6() {
+        assert_eq!(classify_input("::1"), InputType::Ip("::1".parse().unwrap()));
+    }
+
+    #[test]
+    fn test_invalid_input() {
+        assert_eq!(classify_input("google.com"), InputType::Invalid);
+        assert_eq!(classify_input("256.1.1.1"), InputType::Invalid);
+        assert_eq!(classify_input(""), InputType::Invalid);
     }
 }
